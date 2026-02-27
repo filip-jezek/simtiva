@@ -5861,7 +5861,7 @@ function readmodel(x, drug_set_index) {
 			
 		}
 		
-		drug_sets[drug_set_index].vc = 6.28 * fcentral(mass)/fcentral(70) ;
+		drug_sets[drug_set_index].vc = 6.28 * fcentral(mass)/fcentral(70);
 		var v2 = 25.5 * mass/70 * fageing(-0.0156);
 		var v2ref = 25.5 ;
 		var ffmref = (0.88 + (1-0.88)/(1 + Math.pow((35/13.4),-12.7))) * ((9270 * 70)/(6680+216*24.22145));
@@ -5873,16 +5873,16 @@ function readmodel(x, drug_set_index) {
 		var v3ref = 273; //just use this from the table
 		if (gender == 0) { 
 			if (opioid == 1) {
-				var cl1 = 1.79 * Math.pow(mass/70,0.75) * (fclmaturation(PMA)/fclmaturation(35*toweeks+40))* Math.exp(-0.00286*age) ;
+				var cl1 = 1.79 * Math.pow(mass/70,0.75) * (fclmaturation(PMA)/fclmaturation(35*toweeks+40))* Math.exp(-0.00286*age);
 			} else {
-				var cl1 = 1.79 * Math.pow(mass/70,0.75) * (fclmaturation(PMA)/fclmaturation(35*toweeks+40)) ;
+				var cl1 = 1.79 * Math.pow(mass/70,0.75) * (fclmaturation(PMA)/fclmaturation(35*toweeks+40));
 			}
 			//maturation valid for ~<5months according to Eleveld 2018
 		} else {
 			if (opioid == 1) {
-				var cl1 = 2.1 * Math.pow(mass/70,0.75) * (fclmaturation(PMA)/fclmaturation(35*toweeks+40))* Math.exp(-0.00286*age) ;
+				var cl1 = 2.1 * Math.pow(mass/70,0.75) * (fclmaturation(PMA)/fclmaturation(35*toweeks+40))* Math.exp(-0.00286*age);
 			} else {
-				var cl1 = 2.1 * Math.pow(mass/70,0.75) * (fclmaturation(PMA)/fclmaturation(35*toweeks+40)) ;
+				var cl1 = 2.1 * Math.pow(mass/70,0.75) * (fclmaturation(PMA)/fclmaturation(35*toweeks+40));
 			}
 		}
 		var cl2 = 1.75 * Math.pow(v2/v2ref,0.75)* (1 + 1.3*(1-fq3maturation(age*toweeks)));
