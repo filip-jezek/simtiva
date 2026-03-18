@@ -1,0 +1,10 @@
+*.c
+*.libs
+*.makefile
+*.h
+*.mos
+/.agents
+
+/__pycache__
+*.o
+SimpleModel*
