@@ -1,3 +1,4 @@
+within PropofolModels;
 model PropofolEleveld
   parameter Real weight = 70 "Weight in kg";
   parameter Real age = 40 "Age in years";
@@ -98,5 +99,6 @@ equation
     Line(points = {{50, -10}, {80, -10}, {80, 0}}, color = {114, 159, 207}));
   
   annotation(
-    uses(Modelica(version = "4.0.0"), Pharmacolibrary(version = "1.0.0")));
+    Documentation(info = "<html><head></head><body><h1>Eleveld Propofol Model</h1><p>This model implements the Eleveld PK model for propofol, accommodating a wide range of patients including children, adults, obese individuals, and the elderly. It adjusts clearances and volumes dynamically based on covariates including age, weight, height, gender, and opioid co-administration.</p></body></html>"),
+    uses(Modelica(version = "4.0.0"), Pharmacolibrary(version = "25.09")));
 end PropofolEleveld;
