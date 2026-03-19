@@ -17,7 +17,7 @@ def run_openmodelica_cli(model_name, weight, age, height, gender, t_eval_min):
     mos_content = f"""
 loadModel(Modelica);
 loadFile("c:/home/git/Pharmacolibrary/Pharmacolibrary/package.mo");
-loadFile("c:/home/git/simtiva/PropofolModels.mo");
+loadFile("PropofolModels.mo");
 simulate({full_model_path}, startTime=0, stopTime={stopTime_sec}, outputFormat="csv");
 """
     mos_file = f"sim_{model_name}.mos"
