@@ -414,11 +414,20 @@ end PropofolEleveld;
     connect(transfer2.cport_a, peripheral2.cport) annotation(
       Line(points = {{50, -10}, {80, -10}, {80, 0}}, color = {114, 159, 207}));
 
-    annotation();
+    annotation(
+      Documentation(info = "<html><head></head><body><h1>Marsh Propofol Model (Fixed Units)</h1>
+<p>This model implements the standard Marsh PK model for propofol. It is a 3-compartment linearly scaled model relying primarily on patient weight to expand distribution volumes and proportional clearances. It includes an effect-site (ke0) equilibration lag parameter.</p>
+<h2>References</h2>
+<ul>
+  <li>Original Paper: <a href=\"https://doi.org/10.1093/bja/67.1.41\">Marsh B, White M, Morton N, Kenny G. Pharmacokinetic model driven infusion of propofol in children. Br J Anaesth. 1991;67(1):41-48.</a></li>
+  <li>Reimplemented based on the original SimTiva JS implementation: <a href=\"https://github.com/filip-jezek/simtiva\">https://github.com/filip-jezek/simtiva</a></li>
+  <li>Python Reimplementation & Verification: <a href=\"https://github.com/filip-jezek/simtiva/tree/master/PKPD_Reimplementation\">https://github.com/filip-jezek/simtiva (PKPD_Reimplementation)</a></li>
+</ul>
+<h2>Verification Notes</h2>
+<p>The implementation has been explicitly verified to match both the JavaScript and Python versions seamlessly without approximations, operating natively within strict Base SI physical constraints (kg, m3, s).</p>
+</body></html>"));
   end PropofolMarsh_fixedUnits;
-  annotation(
-    uses(Modelica(version = "4.0.0"), Pharmacolibrary(version = "25.09")),
-    Documentation(info = "<html><head></head><body><h1>Propofol Models</h1><p>These models are reimplementations of Propofol PK models, utilizing Pharmacolibrary and its standardized components. Contains Marsh, Eleveld, Paedfusor, and Schnider.</p></body></html>"));
+
 model PropofolSchnider_fixedUnits
   parameter Real weight = 70 "Weight in kg";
   parameter Real age = 40 "Age in years";
@@ -492,9 +501,10 @@ equation
 
   // Connections
   connect(infusion_rate.y, infusion_source.massFlow) annotation(
-    Line(points = {{-68, 40}, {-50, 40}}, color = {0, 0, 127}));
+    Line(points={{-68,40},{-58,40},{-58,45},{-49.6,45}},
+                                          color = {0, 0, 127}));
   connect(infusion_source.cport, central.cport) annotation(
-    Line(points = {{-30, 40}, {0, 40}, {0, 10}}, color = {114, 159, 207}));
+    Line(points={{-40,30},{0,30},{0,10}},        color = {114, 159, 207}));
   connect(elim.cport, central.cport) annotation(
     Line(points = {{-40, 10}, {-20, 10}, {0, 10}}, color = {114, 159, 207}));
   connect(central.cport, transfer1.cport_b) annotation(
@@ -507,8 +517,19 @@ equation
     Line(points = {{50, -10}, {80, -10}, {80, 0}}, color = {114, 159, 207}));
 
   annotation(
-    Documentation(info = "<html><head></head><body><h1>Schnider Propofol Model</h1><p>This model implements the Schnider PK model for propofol, accounting for lean body mass (LBM) using the James equation and adjusted body weight metrics to prevent overdosing in heavier patients. It provides highly accurate predictive capabilities targeting the effect site.</p></body></html>"));
+    Documentation(info="<html><head></head><body><h1>Schnider Propofol Model (Fixed Units)</h1>
+<p>This model implements the Schnider PK model for propofol, accounting for lean body mass (LBM) using the James equation and adjusted body weight metrics to prevent overdosing in heavier patients. It provides highly accurate predictive capabilities targeting the effect site.</p>
+<h2>References</h2>
+<ul>
+  <li>Original Paper: <a href=\"https://doi.org/10.1097/00000542-199805000-00006\">Schnider TW, Minto CF, Gambus PL, et al. The influence of method of administration and covariates on the pharmacokinetics of propofol in adult volunteers. Anesthesiology. 1998;88(5):1170-1182.</a></li>
+  <li>Reimplemented based on the original SimTiva JS implementation: <a href=\"https://github.com/luktinghin/simtiva\">https://github.com/luktinghin/simtiva</a></li>
+  <li>Python Reimplementation & Verification: <a href=\"https://github.com/filip-jezek/simtiva/tree/master/PKPD_Reimplementation\">https://github.com/filip-jezek/simtiva (PKPD_Reimplementation)</a></li>
+</ul>
+<h2>Verification Notes</h2>
+<p>The implementation has been explicitly verified to match both the JavaScript and Python versions seamlessly without approximations, operating natively within strict Base SI physical constraints (kg, m3, s).</p>
+</body></html>"));
 end PropofolSchnider_fixedUnits;
+
 model PropofolPaedfusor_fixedUnits
   parameter Real weight = 70 "Weight in kg";
   parameter Real age = 40 "Age in years";
@@ -562,9 +583,10 @@ model PropofolPaedfusor_fixedUnits
 equation
   // Connections
   connect(infusion_rate.y, infusion_source.massFlow) annotation(
-    Line(points = {{-68, 40}, {-50, 40}}, color = {0, 0, 127}));
+    Line(points={{-68,40},{-58,40},{-58,45},{-49.6,45}},
+                                          color = {0, 0, 127}));
   connect(infusion_source.cport, central.cport) annotation(
-    Line(points = {{-30, 40}, {0, 40}, {0, 10}}, color = {114, 159, 207}));
+    Line(points={{-40,30},{0,30},{0,10}},        color = {114, 159, 207}));
   connect(elim.cport, central.cport) annotation(
     Line(points = {{-40, 10}, {-20, 10}, {0, 10}}, color = {114, 159, 207}));
   connect(central.cport, transfer1.cport_b) annotation(
@@ -580,8 +602,20 @@ equation
   der(Ce) = (ke0 / 60.0) * (central.cport.c - Ce);
 
   annotation(
-    Documentation(info = "<html><head></head><body><h1>Paedfusor Propofol Model</h1><p>This model implements the Paedfusor PK model for propofol, which is explicitly optimized for pediatric patients. Scaled clearances and volumes undergo step-wise adjustments for different age groups up to 16 years.</p></body></html>"));
+    Documentation(info="<html>
+<p><b><span style=\"font-size: 24pt;\">Paedfusor Propofol Model (Fixed Units)</span></b></p>
+<p>This model implements the Paedfusor PK model for propofol, which is explicitly optimized for pediatric patients. Scaled clearances and volumes undergo step-wise adjustments for different age groups up to 16 years.</p>
+<p><b><span style=\"font-size: 18pt;\">References</span></b></p>
+<ul>
+<li>Original Paper: <a href=\"https://doi.org/10.1093/bja/aeg216\">Absalom A, Amutike D, Lal A, et al. Accuracy of the &apos;Paedfusor&apos; pharmacokinetic data set for target-controlled infusion of propofol in children. Br J Anaesth. 2003;91(4):507-513.</a> </li>
+<li>Reimplemented based on the original SimTiva JS implementation: <a href=\"https://github.com/luktinghin/simtiva\">https://github.com/luktinghin/simtiva</a> </li>
+<li>Python Reimplementation &amp; Verification: <a href=\"https://github.com/filip-jezek/simtiva/tree/master/PKPD_Reimplementation\">https://github.com/filip-jezek/simtiva (PKPD_Reimplementation)</a></li>
+</ul>
+<p><b><span style=\"font-size: 18pt;\">Verification Notes</span></b></p>
+<p>The implementation has been explicitly verified to match both the JavaScript and Python versions seamlessly without approximations, operating natively within strict Base SI physical constraints (kg, m3, s).</p>
+</html>"));
 end PropofolPaedfusor_fixedUnits;
+
 model PropofolEleveld_fixedUnits
   parameter Real weight = 70 "Weight in kg";
   parameter Real age = 40 "Age in years";
@@ -667,9 +701,10 @@ equation
 
   // Connections
   connect(infusion_rate.y, infusion_source.massFlow) annotation(
-    Line(points = {{-68, 40}, {-50, 40}}, color = {0, 0, 127}));
+    Line(points={{-68,40},{-58,40},{-58,45},{-49.6,45}},
+                                          color = {0, 0, 127}));
   connect(infusion_source.cport, central.cport) annotation(
-    Line(points = {{-30, 40}, {0, 40}, {0, 10}}, color = {114, 159, 207}));
+    Line(points={{-40,30},{0,30},{0,10}},        color = {114, 159, 207}));
   connect(elim.cport, central.cport) annotation(
     Line(points = {{-40, 10}, {-20, 10}, {0, 10}}, color = {114, 159, 207}));
   connect(central.cport, transfer1.cport_b) annotation(
@@ -682,6 +717,20 @@ equation
     Line(points = {{50, -10}, {80, -10}, {80, 0}}, color = {114, 159, 207}));
 
   annotation(
-    Documentation(info = "<html><head></head><body><h1>Eleveld Propofol Model</h1><p>This model implements the Eleveld PK model for propofol, accommodating a wide range of patients including children, adults, obese individuals, and the elderly. It adjusts clearances and volumes dynamically based on covariates including age, weight, height, gender, and opioid co-administration.</p></body></html>"));
+    Documentation(info="<html>
+<p><b><span style=\"font-size: 24pt;\">Eleveld Propofol Model (Fixed Units)</span></b></p>
+<p>This model implements the Eleveld PK model for propofol, accommodating a wide range of patients including children, adults, obese individuals, and the elderly. It adjusts clearances and volumes dynamically based on covariates including age, weight, height, gender, and opioid co-administration.</p>
+<p><b><span style=\"font-size: 18pt;\">References</span></b></p>
+<ul>
+<li>Original Paper: <a href=\"https://doi.org/10.1016/j.bja.2018.01.018\">Eleveld DJ, Colin P, Absalom AR, Struys MMRF. Pharmacokinetic-pharmacodynamic model for propofol for broad application in anaesthesia and sedation. Br J Anaesth. 2018;120(5):942-959.</a> </li>
+<li>Reimplemented based on the original SimTiva JS implementation: <a href=\"https://github.com/luktinghin/simtiva\">https://github.com/luktinghin/simtiva</a> </li>
+<li>Python Reimplementation &amp; Verification: <a href=\"https://github.com/filip-jezek/simtiva/tree/master/PKPD_Reimplementation\">https://github.com/filip-jezek/simtiva (PKPD_Reimplementation)</a></li>
+</ul>
+<p><b><span style=\"font-size: 18pt;\">Verification Notes</span></b></p>
+<p>The implementation has been explicitly verified to match both the JavaScript and Python versions seamlessly without approximations, operating natively within strict Base SI physical constraints (kg, m3, s).</p>
+</html>"));
 end PropofolEleveld_fixedUnits;
+  annotation(
+    uses(Modelica(version = "4.0.0"), Pharmacolibrary(version = "25.09")),
+    Documentation(info = "<html><head></head><body><h1>Propofol Models</h1><p>These models are reimplementations of Propofol PK models, utilizing Pharmacolibrary and its standardized components. Contains Marsh, Eleveld, Paedfusor, and Schnider.</p></body></html>"));
 end PropofolModels;
