@@ -3,11 +3,18 @@ from .base_model import PropofolModel
 
 class EleveldModel(PropofolModel):
 
-    def __init__(self, weight, age, height, gender, is_adj_bw=False, pma=None, opioid=True):
+    def __init__(self, weight, age, height, gender, is_adj_bw=False, pma=None, opioid=True, ev1=None, ev2=None, ev3=None, ecl=None, eq2=None, eq3=None):
         super().__init__(weight, age, height, gender, is_adj_bw)
         self.opioid = opioid
         # Eleveld calculates age structurally using week scale for infants
         self.toweeks = 52.1429
+        
+        self.ev1 = ev1
+        self.ev2 = ev2
+        self.ev3 = ev3
+        self.ecl = ecl
+        self.eq2 = eq2
+        self.eq3 = eq3
         
         # Post Menstrual Age - either explicitly passed or fallback to generic
         if pma is not None:
@@ -70,6 +77,15 @@ class EleveldModel(PropofolModel):
 
         cl2 = 1.75 * math.pow(v2 / v2ref, 0.75) * (1 + 1.3 * (1 - self._fq3maturation(self.age * self.toweeks)))
         cl3 = 1.11 * math.pow(v3 / v3ref, 0.75) * (self._fq3maturation(self.age * self.toweeks) / self._fq3maturation(35 * self.toweeks))
+
+        import pandas as pd
+        if hasattr(self, 'ev1') and self.ev1 is not None and pd.notnull(self.ev1):
+            vc = self.ev1
+            v2 = self.ev2
+            v3 = self.ev3
+            cl1 = self.ecl
+            cl2 = self.eq2
+            cl3 = self.eq3
 
         k10 = cl1 / vc
         k12 = cl2 / vc
