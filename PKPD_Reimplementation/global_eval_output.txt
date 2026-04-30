@@ -1,0 +1,40 @@
+======================================================================
+GLOBAL PK MODEL OPTIMIZATION
+======================================================================
+
+Loading patient data from /mnt/c/home/git/simtiva/PKPD_Reimplementation/../data/supplementary_digital_content_1.txt...
+  Skipped 4 patients with no valid observations.
+  Loaded 1029 patients in 3.32s
+  Total observations: 11204
+
+--- Reference: Original EleveldModel class ---
+  Cost (proportional SSE): 1973.4148
+  Global proportional RMSE: 0.419684
+  Eval time: 16.206s  (15.75 ms/patient)
+
+--- Parameterized model (theta = Eleveld defaults) ---
+  Cost (proportional SSE): 1972.8439
+  Global proportional RMSE: 0.419624
+  Eval time: 17.138s  (16.65 ms/patient)
+
+--- Comparison ---
+  Cost difference: 0.5708 (0.0289%)
+  ✅ Parameterized model matches Eleveld within 1%
+
+--- Per-patient proportional RMSE ---
+  Min:    0.0157
+  Median: 0.2810
+  Mean:   0.3353
+  P90:    0.5505
+  Max:    2.4381
+
+  Worst 5 patients:
+    PID  525: prop_RMSE=2.4381 (11 obs)
+    PID  380: prop_RMSE=2.3339 (22 obs)
+    PID  705: prop_RMSE=2.2970 (9 obs)
+    PID  479: prop_RMSE=2.1141 (13 obs)
+    PID  792: prop_RMSE=1.9397 (6 obs)
+
+======================================================================
+DONE
+======================================================================

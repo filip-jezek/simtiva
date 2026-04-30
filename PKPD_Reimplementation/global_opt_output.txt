@@ -1,0 +1,64 @@
+======================================================================
+GLOBAL PK MODEL OPTIMIZATION
+======================================================================
+
+Loading patient data from /mnt/c/home/git/simtiva/PKPD_Reimplementation/../data/supplementary_digital_content_1.txt...
+  Skipped 4 patients with no valid observations.
+  Loaded 1029 patients in 1.90s
+  Total observations: 11204
+
+--- Reference: Original EleveldModel class ---
+  Cost (proportional SSE): 1973.4148
+  Global proportional RMSE: 0.419684
+  Eval time: 11.905s  (11.57 ms/patient)
+  Initializing multiprocessing pool with 12 cores...
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:515: DeprecationWarning: scipy.optimize: The `disp` and `iprint` options of the L-BFGS-B solver are deprecated and will be removed in SciPy 1.18.0.
+  result = minimize(
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:197: RuntimeWarning: invalid value encountered in scalar power
+  cl3 = theta[12] * (v3 / v3ref)**0.75 * (q3mat_age / q3mat_ref)
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))
+/mnt/c/home/git/simtiva/PKPD_Reimplementation/global_optimization.py:193: RuntimeWarning: invalid value encountered in scalar power
+  cl2 = theta[10] * (v2 / v2ref)**0.75 * (1 + theta[11] * (1 - q3mat_age))

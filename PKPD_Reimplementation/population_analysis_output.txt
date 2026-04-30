@@ -1,0 +1,55 @@
+============================================================
+STEP 2: POPULATION COVARIATE RANGES & MEDIANS
+============================================================
+Total unique patients: 1033
+
+  Age (years)                min=0.0     P10=5.0     P25=24.0    Median=43.0    P75=60.0    P90=69.0    max=88.0   
+  Weight (kg)                min=0.7     P10=18.7    P25=54.0    Median=70.0    P75=83.0    P90=95.2    max=160.0  
+  Height (cm)                min=33.0    P10=109.2   P25=157.9   Median=168.0   P75=177.0   P90=182.0   max=200.0  
+  BMI (kg/m^2)               min=6.2     P10=15.9    P25=20.4    Median=23.4    P75=26.9    P90=30.8    max=52.8   
+  Fat-Free Mass (kg)         min=0.7     P10=14.8    P25=38.4    Median=49.8    P75=60.0    P90=67.2    max=84.4   
+
+  Sex distribution:
+    Male (1): 672  Female (2): 361
+
+  Opioid co-administration:
+    With opioid (TECH=2): 710  Without (TECH=1): 323
+
+============================================================
+STEP 4: ELEVELD EQUATION OUTPUTS OVER DATA RANGES
+============================================================
+  Vc (V1)       min=0.184   P10=3.321   Median=6.280   P90=6.870   max=7.681  
+  V2            min=0.427   P10=10.470  Median=20.010  P90=32.801  max=57.291 
+  V3            min=3.401   P10=68.271  Median=142.168 P90=297.344 max=417.596
+  CL1           min=0.030   P10=0.695   Median=1.693   P90=2.246   max=3.512  
+  CL2 (Q2)      min=0.147   P10=1.046   Median=1.523   P90=2.230   max=3.393  
+  CL3 (Q3)      min=0.016   P10=0.337   Median=0.683   P90=1.191   max=1.520  
+
+============================================================
+STEP 4b: FIT SIGMOID CURVES TO ELEVELD FUNCTIONS OVER DATA RANGE
+============================================================
+
+  CL Maturation f(PMA) — Eleveld: sigmoid(PMA, 42.3, 9.06)
+    Fitted sigmoid: base=0.0000 Emax=1.0000 PMA50=42.30 gamma=9.060
+    Fit RMSE: 0.000000
+
+  Q3 Maturation f(Age_weeks) — Eleveld: sigmoid(age_weeks+40, 68.3, 1)
+    Fitted sigmoid: base=0.0000 Emax=1.0000 x50=68.30 gamma=1.000
+    Fit RMSE: 0.000000
+
+  CL1 Age decay: Eleveld uses exp(-0.00286*age)
+    Re-fitted exponential: a=1.0000 b=0.00286
+    Exponential fit RMSE: 0.000000
+    Sigmoid fit RMSE:     0.063623  (base=0.1000 Emax=1.5590 age50=1.0 gamma=0.010)
+
+  Vc vs Weight: Eleveld uses 6.28 * sigmoid(W, 33.6, 1) / sigmoid(70, 33.6, 1)
+    Fitted sigmoid: base=0.0000 Emax=9.2944 W50=33.60 gamma=1.000
+    Fit RMSE: 0.000000
+
+  V3 age-opioid decay: Eleveld uses exp(-0.0138*age)
+    Exponential RMSE: 0.000000
+    Sigmoid RMSE:     0.198963  (base=0.1000 Emax=0.9840 age50=1.0 gamma=0.010)
+
+============================================================
+DONE
+============================================================
