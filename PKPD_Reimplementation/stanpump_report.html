@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>STANPUMP CET Simulation Report</title>
+<style>
+@page { size: A4; margin: 16mm 18mm 16mm 18mm; }
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.35;
+  color: #111;
+}
+
+/* ── Title block ─────────────────────────────────────── */
+.title-block {
+  border-bottom: 2px solid #2c5f8a;
+  padding-bottom: 6pt;
+  margin-bottom: 10pt;
+}
+.title-block h1 {
+  font-size: 17pt;
+  color: #1a3a5c;
+  margin: 0 0 2pt 0;
+}
+.title-block .subtitle {
+  font-size: 10pt;
+  color: #2c5f8a;
+  margin: 0;
+}
+
+/* ── Headings ────────────────────────────────────────── */
+h2 {
+  font-size: 11pt;
+  color: #1a3a5c;
+  border-bottom: 1px solid #aac4db;
+  margin: 12pt 0 3pt 0;
+  page-break-after: avoid;
+}
+h3 {
+  font-size: 9.5pt;
+  color: #2c5f8a;
+  margin: 8pt 0 2pt 0;
+  page-break-after: avoid;
+}
+h4 {
+  font-size: 9.5pt;
+  color: #1a3a5c;
+  font-style: italic;
+  margin: 6pt 0 2pt 0;
+  page-break-after: avoid;
+}
+
+/* ── Body text ───────────────────────────────────────── */
+p  { margin: 3pt 0; }
+ul, ol { margin: 3pt 0 4pt 0; padding-left: 16pt; }
+li { margin-bottom: 2pt; }
+strong { color: #1a3a5c; }
+code {
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 8pt;
+  background: #f2f5f8;
+  padding: 0 2pt;
+  border-radius: 2px;
+}
+
+/* ── Code blocks ─────────────────────────────────────── */
+pre {
+  background: #f2f5f8;
+  border-left: 3px solid #2c5f8a;
+  padding: 5pt 8pt;
+  margin: 4pt 0 6pt 0;
+  font-size: 7.8pt;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-all;
+  page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; }
+
+/* ── Tables ──────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 8.5pt;
+  margin: 4pt 0 7pt 0;
+  page-break-inside: avoid;
+}
+th {
+  background: #2c5f8a;
+  color: #fff;
+  padding: 3pt 5pt;
+  border: 1px solid #2c5f8a;
+  text-align: left;
+}
+td {
+  padding: 2.5pt 5pt;
+  border: 1px solid #ccc;
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: #f4f8fc; }
+tr:last-child td { font-weight: bold; }
+
+/* ── Images ──────────────────────────────────────────── */
+.img-wrap {
+  width: 100%;
+  margin: 6pt 0 4pt 0;
+  page-break-inside: avoid;
+}
+.img-wrap img { width: 100%; height: auto; display: block; }
+.img-caption {
+  font-size: 8pt;
+  color: #555;
+  text-align: center;
+  margin-top: 2pt;
+  margin-bottom: 6pt;
+  font-style: italic;
+}
+
+/* ── Blockquotes ─────────────────────────────────────── */
+blockquote {
+  border-left: 3px solid #2c5f8a;
+  background: #f0f5fa;
+  margin: 3pt 0;
+  padding: 2pt 8pt;
+  font-size: 8.5pt;
+  font-style: italic;
+}
+
+/* ── Section separator ───────────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid #dde5ee;
+  margin: 8pt 0;
+}
+
+/* ── Patient section header ──────────────────────────── */
+.patient-header {
+  background: #f0f5fa;
+  border-left: 4px solid #2c5f8a;
+  padding: 3pt 8pt;
+  margin: 8pt 0 4pt 0;
+  page-break-after: avoid;
+}
+.patient-header h4 { margin: 0; font-style: normal; color: #1a3a5c; }
+
+/* ── Callout / note box ──────────────────────────────── */
+.callout {
+  background: #fff8f0;
+  border: 1px solid #e6a817;
+  border-left: 4px solid #e6a817;
+  border-radius: 3px;
+  padding: 4pt 8pt;
+  margin: 5pt 0;
+  font-size: 8.5pt;
+  page-break-inside: avoid;
+}
+
+/* ── References list ─────────────────────────────────── */
+ol.refs li { margin-bottom: 3pt; }
+</style>
+</head>
+<body>
+
+<!-- ── Title ──────────────────────────────────────────────────────── -->
+<div class="title-block">
+  <h1>STANPUMP CET Simulation Report</h1>
+  <p class="subtitle">Propofol TCI — Effect-Site Targeting across 7 Patients and 4 PK/PD Models</p>
+</div>
+
+<!-- ── 1. Background ──────────────────────────────────────────────── -->
+<h2>1. Background: Propofol Pharmacokinetics and Pharmacodynamics</h2>
+
+<p>Propofol is the primary intravenous anaesthetic used for total intravenous anaesthesia (TIVA).
+Its effect — loss of consciousness and anaesthetic depth — is mediated at the brain, not in the blood.
+Because propofol distributes from blood into the brain (the <em>effect site</em>) with a finite rate
+constant (ke0), plasma concentration (Cp) and effect-site concentration (Ce) are not equal during
+dynamic dosing. Targeting Cp directly overshoots during induction and undershoots during wake-up.
+Effect-site targeting (CET) accounts for this lag.</p>
+
+<p><strong>Three-compartment model</strong> — propofol pharmacokinetics are described by:</p>
+
+<table>
+  <tr><th>Compartment</th><th>Physiology</th><th>Linked by</th></tr>
+  <tr><td>1 (central)</td><td>Blood / highly perfused organs</td><td>k12, k21, k13, k31</td></tr>
+  <tr><td>2 (fast peripheral)</td><td>Muscle</td><td>k12, k21</td></tr>
+  <tr><td>3 (slow peripheral)</td><td>Fat</td><td>k13, k31</td></tr>
+  <tr><td>Effect site</td><td>Brain</td><td>ke0 (= k41)</td></tr>
+</table>
+
+<p>Drug is eliminated from compartment 1 at rate k10. Amounts in each compartment follow a system
+of linear ODEs whose solution is a sum of exponentials — the mathematical structure STANPUMP exploits.</p>
+
+<hr>
+
+<!-- ── 2. The STANPUMP Algorithm ──────────────────────────────────── -->
+<h2>2. The STANPUMP Algorithm</h2>
+
+<p>STANPUMP (Shafer &amp; Gregg 1992) is the reference implementation for computer-controlled infusion
+in anaesthesia. It operates in <strong>discrete 1-second steps</strong> — confirmed from SimTIVA source
+(<code>refresh_interval = 1000 ms</code>, <code>delta_seconds = 1</code>) — and uses closed-form exponential
+recursion rather than numerical ODE integration, giving exact results at machine speed.</p>
+
+<h3>2.1 Characteristic Roots — <code>cube()</code></h3>
+
+<p>For a 3-compartment model the characteristic polynomial is:</p>
+
+<pre>X³ + a₂X² + a₁X + a₀ = 0
+
+  a₀ = k10·k21·k31
+  a₁ = k10·k31 + k21·k31 + k21·k13 + k10·k21 + k31·k12
+  a₂ = k10 + k12 + k13 + k21 + k31</pre>
+
+<p>The polynomial is transformed to depressed form <code>y³ + p·y + q = 0</code> and solved analytically
+via the trigonometric (Cardano) method. All three roots are real and negative for a physically valid model.
+The roots λ₁ ≤ λ₂ ≤ λ₃ are the exponential decay rates. A fourth root λ₄ = ke0 describes effect-site equilibration.</p>
+
+<h3>2.2 Macro-Constants — <code>calculate_udfs()</code></h3>
+
+<p><strong>Plasma coefficients</strong> (p_coef) link infusion rate to Cp:</p>
+<pre>p_coef[i] = (k21 − λᵢ)(k31 − λᵢ) / [(λᵢ − λⱼ)(λᵢ − λₖ) · Vc · λᵢ]</pre>
+
+<p><strong>Effect-site coefficients</strong> (e_coef):</p>
+<pre>e_coef[i] = p_coef[i] · ke0 / (ke0 − λᵢ)          i = 1,2,3
+e_coef[4] = (ke0 − k21)(ke0 − k31) / [(λ₁ − ke0)(λ₂ − ke0)(λ₃ − ke0) · Vc]</pre>
+
+<p><strong>Unit Disposition Functions (UDF)</strong> capture the response to a unit infusion (1 mg/s):</p>
+<pre>p_udf[t] = Cp from 1 mg/s continuous infusion running for t seconds  (tabulated 0..300 s)
+e_udf[t] = Ce at time t following 1 mg/s infusion for 1 second then off</pre>
+
+<p>UDFs are computed by the exact 1-second recursion:</p>
+<pre>state[i](t+1) = state[i](t) · exp(−λᵢ) + coef[i] · rate · (1 − exp(−λᵢ))</pre>
+
+<p><code>peak_time</code> is the index at which e_udf reaches its maximum — the moment Ce peaks after a unit bolus.</p>
+
+<h3>2.3 Effect-Site Targeting (CET) — Induction</h3>
+
+<p>Starting from zero drug in the system, the initial bolus is determined by:</p>
+<ol>
+  <li><strong>First estimate:</strong> <code>trial_rate = Ce_target / e_udf[peak_time]</code></li>
+  <li><strong>Iterative refinement</strong> via <code>find_peak()</code>: hill-climb to find the time that maximises
+      <code>Ce_from_existing_state + e_udf[t] · trial_rate</code>, then recompute <code>trial_rate</code>.
+      Repeat until convergence (|achieved − target| &lt; 0.01 %).</li>
+  <li><strong>Round up:</strong> <code>bolus_mg = ceil(trial_rate)</code> — always overshoot slightly at peak to avoid under-dosing.</li>
+  <li><strong>Administer bolus</strong> in 1 second; hold pump off until <code>peak_time</code> seconds have elapsed.</li>
+</ol>
+
+<h3>2.4 Plasma Targeting (CPT) — Maintenance</h3>
+
+<p>After the induction peak, STANPUMP switches to plasma-concentration targeting (CPT).
+Because at steady state Cp ≈ Ce, maintaining Cp at the target keeps Ce there too.</p>
+
+<p>Each second (δ = 1 s):</p>
+<pre>predicted_Cp = Σᵢ ps[i] · exp(−λᵢ · δ)     (Cp in 1 s if pump is off)
+rate = max(0,  (Ce_target − predicted_Cp) / p_udf[δ])</pre>
+
+<h3>2.5 Per-Second State Update</h3>
+
+<p>All compartmental dynamics reduce to seven scalar recursions:</p>
+<pre># Plasma  (l[i] = exp(−λᵢ · 1s))
+ps[i] = ps[i] * l[i] + p_coef[i] * rate * (1 − l[i])     i = 0,1,2
+
+# Effect site  (l[3] = exp(−ke0 · 1s))
+es[j] = es[j] * l[j] + e_coef[j] * rate * (1 − l[j])     j = 0,1,2,3</pre>
+
+<p><code>Cp = Σ ps[i]</code>,  <code>Ce = Σ es[j]</code>.</p>
+
+<hr>
+
+<!-- ── 3. Models ───────────────────────────────────────────────────── -->
+<h2>3. PK/PD Models Used</h2>
+
+<table>
+  <tr><th>Model</th><th>Reference</th><th>Validated age range</th><th>Key characteristic</th></tr>
+  <tr><td><strong>Marsh</strong></td><td>BJA 1991;67:41–8</td><td>Adults</td><td>Weight-only scaling; Vc = 0.228·BW; all k fixed</td></tr>
+  <tr><td><strong>Schnider</strong></td><td>Anesthesiology 1998;88:1170–82</td><td>Adults</td><td>Fixed Vc = 4.27 L; CL1 adjusted for LBM, age, height</td></tr>
+  <tr><td><strong>Paedfusor</strong></td><td>BJA 2003;91:507–13</td><td>1–16 yr → Adults</td><td>Age-banded k10 and Vc; ke0 from Tpeak formula (BJA 2008)</td></tr>
+  <tr><td><strong>Eleveld</strong></td><td>BJA 2018;120:942–59</td><td>Neonates → Elderly</td><td>Allometric + maturation functions; universal model</td></tr>
+</table>
+
+<p>All models return rate constants in min⁻¹ and volumes in litres; STANPUMP converts to per-second internally.</p>
+
+<h3>3.1 Applicability to Paediatric Patients</h3>
+<ul>
+  <li><strong>Marsh:</strong> designed for adults; k-rates are weight-independent — underestimates requirements for young children and does not adapt ke0 to age.</li>
+  <li><strong>Schnider:</strong> fixed Vc (4.27 L) is unrealistic for small children; ke0 (0.456 min⁻¹) not age-appropriate.</li>
+  <li><strong>Paedfusor:</strong> purpose-built for children; switches to adult (Marsh-equivalent) parameters at age ≥ 16 yr.</li>
+  <li><strong>Eleveld:</strong> fully continuous across ages via maturation functions; the only model simultaneously valid for all seven patients.</li>
+</ul>
+
+<hr>
+
+<!-- ── 4. Protocol ─────────────────────────────────────────────────── -->
+<h2>4. Simulation Protocol</h2>
+
+<table>
+  <tr><th>Parameter</th><th>Value</th></tr>
+  <tr><td>Ce target</td><td>4 μg/mL</td></tr>
+  <tr><td>Procedure duration</td><td>90 min (5 400 s)</td></tr>
+  <tr><td>Syringe content</td><td>50 mL × 10 mg/mL (1% propofol) = <strong>500 mg</strong></td></tr>
+  <tr><td>Syringe change — 1st</td><td>20 s</td></tr>
+  <tr><td>Syringe change — 2nd</td><td><strong>180 s</strong> (prolonged — stress-test scenario)</td></tr>
+  <tr><td>Syringe change — 3rd+</td><td>20 s</td></tr>
+  <tr><td>STANPUMP time step</td><td>1 s (confirmed from SimTIVA source)</td></tr>
+  <tr><td>CPT rate update</td><td>every 1 s</td></tr>
+</table>
+
+<p>The 180-second second change is the scenario's stress test: a 3-minute interruption mid-procedure forces Ce to drift below target before the pump recovers.</p>
+
+<hr>
+
+<!-- ── 5. Patients ─────────────────────────────────────────────────── -->
+<h2>5. Patients</h2>
+
+<table>
+  <tr><th>#</th><th>Sex</th><th>Age</th><th>Weight</th><th>Height</th><th>BMI</th></tr>
+  <tr><td>1</td><td>Male</td><td>5 yr</td><td>18 kg</td><td>110 cm</td><td>14.9</td></tr>
+  <tr><td>2</td><td>Female</td><td>10 yr</td><td>30 kg</td><td>140 cm</td><td>15.3</td></tr>
+  <tr><td>3</td><td>Male</td><td>20 yr</td><td>80 kg</td><td>180 cm</td><td>24.7</td></tr>
+  <tr><td>4</td><td>Female</td><td>20 yr</td><td>50 kg</td><td>150 cm</td><td>22.2</td></tr>
+  <tr><td>5</td><td>Male</td><td>40 yr</td><td>80 kg</td><td>180 cm</td><td>24.7</td></tr>
+  <tr><td>6</td><td>Female</td><td>40 yr</td><td>50 kg</td><td>150 cm</td><td>22.2</td></tr>
+  <tr><td>7</td><td>Male</td><td>40 yr</td><td>120 kg</td><td>180 cm</td><td>37.0</td></tr>
+</table>
+
+<p>Patients 1–2 are paediatric; patients 3–7 are adults spanning sex, BMI, and the 40-year working age group. Patient 7 is obese (BMI 37 kg/m²).</p>
+
+<hr>
+
+<!-- ── 6. Results ──────────────────────────────────────────────────── -->
+<h2>6. Results</h2>
+
+<h3>6.1 Summary Figure</h3>
+
+<div class="img-wrap">
+  <img src="figures/stanpump_summary.png" alt="Summary: syringe changes, total dose, dose per kg">
+</div>
+<p class="img-caption"><strong>Figure 1.</strong> Summary across all 7 patients and 4 models.
+Top: number of syringe changes. Middle: total propofol dose (mg). Bottom: dose per kg body weight (mg/kg).</p>
+
+<p>Three stacked panels for all 7 patients × 4 models.</p>
+
+<p><strong>Panel 1 — Syringe changes.</strong>
+Small children (patients 1–2) typically complete the procedure on one syringe. Large adults (80–120 kg)
+require 2–3 changes. Schnider consistently requires one fewer change for large patients because its
+fixed small Vc leads to lower maintenance rates once equilibrium is reached.</p>
+
+<p><strong>Panel 2 — Total dose (mg).</strong>
+Absolute dose scales with body weight. Marsh and Paedfusor (for adults) are nearly identical and purely
+weight-proportional. Schnider shows less weight-proportionality (fixed Vc, LBM-adjusted clearance).
+Eleveld gives the largest boluses (longest peak_time) but comparable total dose for most adults.</p>
+
+<p><strong>Panel 3 — Dose per kg (mg/kg).</strong>
+Normalised dose reveals model philosophy most clearly:
+Marsh is flat ~15.5 mg/kg for all adults.
+Schnider drops sharply for the obese patient 7 (11.6 mg/kg) — effectively dose-capping in obesity.
+Paedfusor gives children more per kg (15.5–22 mg/kg), which is physiologically correct.
+Eleveld (15–22 mg/kg) applies sex and age corrections; females receive slightly more per kg due to larger CL1.</p>
+
+<h3>6.2 Patient Panels</h3>
+
+<p>Each figure shows a 2×2 grid (one panel per model). Within each panel:</p>
+<table>
+  <tr><th>Element</th><th>Description</th></tr>
+  <tr><td><strong>Blue solid line</strong></td><td>Effect-site concentration Ce (μg/mL), left axis</td></tr>
+  <tr><td><strong>Orange dashed line</strong></td><td>Plasma concentration Cp (μg/mL), left axis</td></tr>
+  <tr><td><strong>Black dashed horizontal</strong></td><td>Target Ce = 4 μg/mL</td></tr>
+  <tr><td><strong>Gray filled area</strong></td><td>Infusion rate (ml/h), right axis — scaled to maintenance rates; bolus spike may clip</td></tr>
+  <tr><td><strong>Orange bands</strong></td><td>Syringe-change pauses, labelled with duration in seconds</td></tr>
+  <tr><td><strong>Annotation box</strong></td><td>Initial bolus (mg), peak time (s), total dose, number of changes</td></tr>
+</table>
+
+<p>All four panels share the same concentration y-axis, scaled to 120% of the 99.5th-percentile Cp
+across all models — zooming in on maintenance while avoiding compression by the brief induction Cp spike.</p>
+
+<!-- Patient 1 -->
+<div class="patient-header"><h4>Patient 1 — Male, 5 yr, 18 kg, 110 cm</h4></div>
+<div class="img-wrap">
+  <img src="figures/stanpump_patient_1.png" alt="Patient 1 simulation">
+</div>
+<p class="img-caption"><strong>Figure 2.</strong> Patient 1 (M 5yr 18kg 110cm) — all four models.</p>
+
+<p>Clearest model divergence in the dataset. <strong>Marsh</strong> delivers only a 26-mg bolus (flat weight scaling)
+with adult rate constants — Ce reaches target, but the underlying model is biologically inappropriate for a 5-year-old.
+<strong>Paedfusor</strong> and <strong>Eleveld</strong> use a longer peak_time (~168–175 s) and larger bolus (60–67 mg),
+correctly reflecting the child's slower ke0 and higher volume of distribution per kilogram.
+<strong>Schnider</strong> produces the highest mg/kg dose (30.7 mg/kg) because its adult-fixed Vc of 4.27 L is
+disproportionately small for this child.</p>
+
+<!-- Patient 2 -->
+<div class="patient-header"><h4>Patient 2 — Female, 10 yr, 30 kg, 140 cm</h4></div>
+<div class="img-wrap">
+  <img src="figures/stanpump_patient_2.png" alt="Patient 2 simulation">
+</div>
+<p class="img-caption"><strong>Figure 3.</strong> Patient 2 (F 10yr 30kg 140cm) — all four models.</p>
+
+<p><strong>Paedfusor</strong> produces the longest induction pause (210 s) — its age-dependent ke0 formula gives
+the slowest equilibration at 10 yr, consistent with published Tpeak data.
+<strong>Eleveld</strong> peak_time (172 s) is shorter but still clearly paediatric.
+<strong>Marsh</strong> significantly under-doses per kg (15.6 mg/kg vs expected ~20 mg/kg for this age).</p>
+
+<!-- Patient 3 -->
+<div class="patient-header"><h4>Patient 3 — Male, 20 yr, 80 kg, 180 cm</h4></div>
+<div class="img-wrap">
+  <img src="figures/stanpump_patient_3.png" alt="Patient 3 simulation">
+</div>
+<p class="img-caption"><strong>Figure 4.</strong> Patient 3 (M 20yr 80kg 180cm) — all four models.</p>
+
+<p>Adult models begin to agree more closely. <strong>Schnider</strong>'s fixed Vc creates a higher initial
+Cp spike that decays quickly. <strong>Eleveld</strong> requires the largest bolus (222 mg) due to its longer
+peak_time (164 s). Two syringe changes required by all models; the 180-second second change produces
+a visible Ce dip below target.</p>
+
+<!-- Patient 4 -->
+<div class="patient-header"><h4>Patient 4 — Female, 20 yr, 50 kg, 150 cm</h4></div>
+<div class="img-wrap">
+  <img src="figures/stanpump_patient_4.png" alt="Patient 4 simulation">
+</div>
+<p class="img-caption"><strong>Figure 5.</strong> Patient 4 (F 20yr 50kg 150cm) — all four models.</p>
+
+<p>Sex effect visible in <strong>Eleveld</strong>: female CL1 is 2.1 L/min vs 1.79 L/min for males, giving
+a larger bolus (154 mg) and higher total dose (19.4 mg/kg) than the equivalent male.
+<strong>Schnider</strong> also gives higher doses for females through LBM correction. One syringe change for all models.</p>
+
+<!-- Patient 5 -->
+<div class="patient-header"><h4>Patient 5 — Male, 40 yr, 80 kg, 180 cm</h4></div>
+<div class="img-wrap">
+  <img src="figures/stanpump_patient_5.png" alt="Patient 5 simulation">
+</div>
+<p class="img-caption"><strong>Figure 6.</strong> Patient 5 (M 40yr 80kg 180cm) — all four models.</p>
+
+<p>Closely matches patient 3 (same weight/height, 20 years older). The 180-second change is the
+second change here, producing the deepest Ce dip across all models. Slight age-dependent clearance
+decline visible in <strong>Eleveld</strong>.</p>
+
+<!-- Patient 6 -->
+<div class="patient-header"><h4>Patient 6 — Female, 40 yr, 50 kg, 150 cm</h4></div>
+<div class="img-wrap">
+  <img src="figures/stanpump_patient_6.png" alt="Patient 6 simulation">
+</div>
+<p class="img-caption"><strong>Figure 7.</strong> Patient 6 (F 40yr 50kg 150cm) — all four models.</p>
+
+<p>Female patients consistently require higher mg/kg doses under <strong>Eleveld</strong> and <strong>Schnider</strong>
+compared to weight-matched males. <strong>Marsh</strong> and <strong>Paedfusor</strong> (adult parameters) are sex-blind
+and give 15.7 mg/kg regardless. The prolonged 180-second change produces a clear Ce drop and recovery ramp
+visible in the blue Ce line.</p>
+
+<!-- Patient 7 -->
+<div class="patient-header"><h4>Patient 7 — Male, 40 yr, 120 kg, 180 cm (obese, BMI 37)</h4></div>
+<div class="img-wrap">
+  <img src="figures/stanpump_patient_7.png" alt="Patient 7 simulation">
+</div>
+<p class="img-caption"><strong>Figure 8.</strong> Patient 7 (M 40yr 120kg 180cm) — all four models.</p>
+
+<p>Greatest divergence among adult patients.</p>
+<ul>
+  <li><strong>Marsh / Paedfusor:</strong> 169–170 mg bolus; three syringe changes; flat 15.5 mg/kg — obesity ignored completely.</li>
+  <li><strong>Schnider:</strong> 83-mg bolus (smallest) and lowest total dose (11.6 mg/kg) — LBM-based clearance with fixed Vc corrects aggressively downward for obesity. Requires only 2 changes.</li>
+  <li><strong>Eleveld:</strong> 281-mg bolus (largest); allometric weight scaling increases both Vc and CL1, giving a moderate obesity correction (14.0 mg/kg) that is physiologically more grounded than Schnider. Still 3 changes.</li>
+</ul>
+
+<hr>
+
+<!-- ── 7. Key Observations ─────────────────────────────────────────── -->
+<h2>7. Key Observations</h2>
+
+<ol>
+  <li><strong>STANPUMP runs at 1-second resolution</strong> — confirmed from SimTIVA source (<code>refresh_interval = 1000 ms</code>, <code>delta_seconds = 1</code>). Both the UDF tables and the CPT rate update operate at this cadence.</li>
+  <li><strong>Model choice matters most for children</strong> — Marsh and Schnider give biologically implausible dosing for patients under 13 yr. Only Paedfusor and Eleveld are appropriate for paediatric use.</li>
+  <li><strong>Schnider most aggressively corrects for obesity</strong> — fixed Vc with LBM-based clearance gives the lowest mg/kg dose in patient 7. Eleveld's allometric approach is more physiologically grounded.</li>
+  <li><strong>The 180-second change causes clinically significant Ce drop</strong> — visible as an orange band followed by a Ce dip in every affected panel. Recovery time depends on model k-rates and residual drug burden in peripheral compartments.</li>
+  <li><strong>Eleveld uses larger initial boluses</strong> — because ke0 is smaller (longer time to peak), more drug must be front-loaded. Total 90-minute dose remains comparable because maintenance rate is then lower.</li>
+  <li><strong>Syringe change count is a clean proxy for total drug load</strong> — each additional change represents approximately 500 mg more propofol.</li>
+</ol>
+
+<hr>
+
+<!-- ── 8. Implementation ────────────────────────────────────────────── -->
+<h2>8. Implementation Notes</h2>
+
+<table>
+  <tr><th>File</th><th>Purpose</th></tr>
+  <tr><td><code>stanpump_tci.py</code></td><td>Core STANPUMP engine: <code>cube()</code>, <code>calculate_udfs()</code>, <code>virtual_model_cp/ce()</code>, <code>find_peak_time()</code>, <code>simulate_stanpump_cet()</code></td></tr>
+  <tr><td><code>stanpump_scenario.py</code></td><td>Protocol constants, model instantiation, <code>run_all()</code></td></tr>
+  <tr><td><code>stanpump_plots.py</code></td><td>All figures: summary (3-panel bar) + per-patient (2×2 grid)</td></tr>
+  <tr><td><code>models/marsh.py</code></td><td>Marsh model (BJA 1991)</td></tr>
+  <tr><td><code>models/schnider.py</code></td><td>Schnider model (Anesthesiology 1998)</td></tr>
+  <tr><td><code>models/paedfusor.py</code></td><td>Paedfusor model (BJA 2003)</td></tr>
+  <tr><td><code>models/eleveld.py</code></td><td>Eleveld model (BJA 2018)</td></tr>
+</table>
+
+<p><strong>Reproduce all results:</strong></p>
+<pre>cd PKPD_Reimplementation
+python3 stanpump_plots.py     # simulates all patients × models and saves all figures</pre>
+
+<hr>
+
+<!-- ── 9. References ───────────────────────────────────────────────── -->
+<h2>9. References</h2>
+
+<ol class="refs">
+  <li>Shafer SL, Gregg KM. Algorithms to rapidly achieve and maintain stable drug concentrations at the site of drug effect with a computer-controlled infusion pump. <em>J Pharmacokinet Biopharm</em> 1992;<strong>20</strong>:147–69.</li>
+  <li>Marsh B, et al. Pharmacokinetic model driven infusion of propofol in children. <em>Br J Anaesth</em> 1991;<strong>67</strong>:41–8.</li>
+  <li>Schnider TW, et al. The influence of method of administration and covariates on the pharmacokinetics of propofol in adult volunteers. <em>Anesthesiology</em> 1998;<strong>88</strong>:1170–82.</li>
+  <li>Absalom A, et al. Pharmacokinetic model for propofol for use with a target-controlled infusion system in paediatric patients (Paedfusor). <em>Br J Anaesth</em> 2003;<strong>91</strong>:507–13.</li>
+  <li>Eleveld DJ, et al. Pharmacokinetic–pharmacodynamic model for propofol for broad application in anaesthesia and sedation. <em>Br J Anaesth</em> 2018;<strong>120</strong>:942–59.</li>
+  <li>Jeleazcov C, et al. Pharmacodynamic modelling of the bispectral index response to propofol-based anaesthesia in children. <em>Br J Anaesth</em> 2008;<strong>100</strong>:509–16.</li>
+  <li>SimTIVA open-source TCI simulator — pharmacology.js (source of the STANPUMP JavaScript implementation translated into Python here).</li>
+</ol>
+
+</body>
+</html>
