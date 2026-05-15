@@ -1,40 +1,72 @@
 STANPUMP CET — Population statistics
-Protocol: Ce = 4.0 μg/mL, 90 min, ≤1800 mL/h, syringe 500 mg
-Patients: n = 1033
+Protocol: Ce = 4.0 μg/mL, 90 min, ≤1800 mL/h, rate step 0.1 mL/h, syringe 500 mg
+Syringe changes: cyclic [180, 20] s
+Age filter: > 18 years  ·  Models: Marsh, Schnider, Eleveld
+Patients: n = 834
 
-────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────
 Marsh
-────────────────────────────────────────────────────────────
-  Bolus (mg)                median    99.0  mean    92.3 ±  38.7  [1.0 – 225.0]
-  Total dose (mg)           median  1079.0  mean  1011.5 ± 424.6  [10.6 – 2464.1]
-  Dose/kg (mg/kg)           median    15.4  mean    15.5 ±   0.1  [15.2 – 15.8]
-  Syringe swaps             median     2.0  mean     1.5 ±   0.9  [0.0 – 4.0]
-  Wake-up time (min)        median   106.0  mean   105.9 ±   0.4  [103.3 – 106.2]
+────────────────────────────────────────────────────────────────────────
+  Bolus (mg)                    median   106.00  mean   107.29 ±  23.86  [51.00 – 225.00]
+  Total dose (mg)               median  1157.80  mean  1173.94 ± 259.08  [555.60 – 2446.50]
+  Dose/kg (mg/kg)               median    15.44  mean    15.42 ±   0.06  [15.10 – 15.45]
+  Dose @ 5 min (mg)             median   160.70  mean   163.01 ±  35.67  [77.90 – 335.50]
+  Dose @ 10 min (mg)            median   240.50  mean   244.04 ±  53.83  [116.20 – 500.00]
+  Dose @ 30 min (mg)            median   500.00  mean   509.60 ± 109.34  [245.30 – 1057.60]
+  Dose @ 60 min (mg)            median   841.50  mean   854.26 ± 190.29  [408.20 – 1767.60]
+  Peak rate (mL/h)              median  1800.00  mean  1800.00 ±   0.00  [1800.00 – 1800.00]
+  AUC rate (mL·min)             median  6932.10  mean  7028.95 ± 1554.46  [3319.70 – 14663.90]
+  Stab. time (min)              median     1.80  mean     1.80 ±   0.04  [1.70 – 2.02]
+  Syringe swaps                 median     2.00  mean     1.85 ±   0.61  [1.00 – 4.00]
+  Rate-chg freq (/min)          median    29.16  mean    29.10 ±   0.37  [27.54 – 29.89]
+  Zero-infusion (s)             median   200.00  mean   213.16 ±  55.55  [180.00 – 400.00]
+  Infusion CV                   median     0.79  mean     0.79 ±   0.04  [0.72 – 1.00]
+  Wake-up time (min)            median   106.10  mean   106.00 ±   0.34  [103.80 – 106.10]
+  Ce divergence mean            median     0.14  mean     0.14 ±   0.03  [0.09 – 0.38]
+  Ce divergence max             median     1.60  mean     1.62 ±   0.19  [1.26 – 2.58]
+  Dose divergence (mg)          median   176.56  mean   205.46 ±  91.09  [16.14 – 558.42]
 
-────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────
 Schnider
-────────────────────────────────────────────────────────────
-  Bolus (mg)                median    69.0  mean    69.4 ±   7.9  [45.0 – 120.0]
-  Total dose (mg)           median  1000.0  mean   955.7 ± 292.8  [83.7 – 2684.7]
-  Dose/kg (mg/kg)           median    14.8  mean    17.3 ±   8.4  [10.7 – 123.1]
-  Syringe swaps             median     2.0  mean     1.5 ±   0.7  [0.0 – 5.0]
-  Wake-up time (min)        median    97.8  mean   103.3 ±  16.5  [92.6 – 207.9]
+────────────────────────────────────────────────────────────────────────
+  Bolus (mg)                    median    70.00  mean    71.02 ±   6.95  [56.00 – 120.00]
+  Total dose (mg)               median  1025.15  mean  1057.86 ± 173.58  [729.80 – 2554.20]
+  Dose/kg (mg/kg)               median    14.15  mean    14.21 ±   2.03  [10.73 – 23.14]
+  Dose @ 5 min (mg)             median   119.00  mean   121.60 ±  16.92  [87.10 – 250.90]
+  Dose @ 10 min (mg)            median   187.55  mean   191.48 ±  28.04  [135.90 – 414.60]
+  Dose @ 30 min (mg)            median   424.60  mean   433.28 ±  60.65  [312.10 – 957.20]
+  Dose @ 60 min (mg)            median   723.30  mean   746.00 ± 120.23  [530.20 – 1764.60]
+  Peak rate (mL/h)              median  1800.00  mean  1800.00 ±   0.00  [1800.00 – 1800.00]
+  AUC rate (mL·min)             median  6136.00  mean  6332.58 ± 1041.48  [4364.30 – 15310.10]
+  Stab. time (min)              median     1.63  mean     1.63 ±   0.11  [1.15 – 1.97]
+  Syringe swaps                 median     2.00  mean     1.63 ±   0.57  [1.00 – 5.00]
+  Rate-chg freq (/min)          median    28.97  mean    28.95 ±   0.36  [26.61 – 29.82]
+  Zero-infusion (s)             median   200.00  mean   197.11 ±  34.26  [180.00 – 580.00]
+  Infusion CV                   median     0.56  mean     0.55 ±   0.04  [0.41 – 0.69]
+  Wake-up time (min)            median    97.60  mean    98.50 ±   2.84  [92.90 – 111.60]
+  Ce divergence mean            median     0.14  mean     0.14 ±   0.03  [0.09 – 0.38]
+  Ce divergence max             median     1.60  mean     1.62 ±   0.19  [1.26 – 2.58]
+  Dose divergence (mg)          median   176.56  mean   205.46 ±  91.09  [16.14 – 558.42]
 
-────────────────────────────────────────────────────────────
-Paedfusor
-────────────────────────────────────────────────────────────
-  Bolus (mg)                median   102.0  mean   100.0 ±  35.0  [3.0 – 266.0]
-  Total dose (mg)           median  1086.0  mean  1039.2 ± 397.9  [27.5 – 2479.8]
-  Dose/kg (mg/kg)           median    15.5  mean    17.0 ±   3.5  [15.2 – 40.5]
-  Syringe swaps             median     2.0  mean     1.6 ±   0.9  [0.0 – 4.0]
-  Wake-up time (min)        median   106.3  mean   109.1 ±   7.1  [100.5 – 140.7]
-
-────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────
 Eleveld
-────────────────────────────────────────────────────────────
-  Bolus (mg)                median   182.0  mean   170.2 ±  60.8  [3.0 – 369.0]
-  Total dose (mg)           median  1164.9  mean  1072.4 ± 376.2  [18.5 – 2176.5]
-  Dose/kg (mg/kg)           median    16.6  mean    17.4 ±   2.8  [13.1 – 28.4]
-  Syringe swaps             median     2.0  mean     1.7 ±   0.8  [0.0 – 4.0]
-  Wake-up time (min)        median   108.3  mean   108.8 ±   3.0  [102.6 – 123.4]
+────────────────────────────────────────────────────────────────────────
+  Bolus (mg)                    median   191.00  mean   193.56 ±  35.30  [113.00 – 369.00]
+  Total dose (mg)               median  1212.90  mean  1223.16 ± 187.62  [722.40 – 2144.90]
+  Dose/kg (mg/kg)               median    16.23  mean    16.32 ±   1.29  [12.94 – 20.07]
+  Dose @ 5 min (mg)             median   216.50  mean   219.23 ±  40.32  [127.00 – 419.30]
+  Dose @ 10 min (mg)            median   287.15  mean   290.56 ±  51.29  [172.40 – 500.00]
+  Dose @ 30 min (mg)            median   521.45  mean   533.42 ±  82.38  [330.00 – 962.20]
+  Dose @ 60 min (mg)            median   879.05  mean   887.09 ± 140.76  [525.00 – 1542.60]
+  Peak rate (mL/h)              median  1800.00  mean  1800.00 ±   0.00  [1800.00 – 1800.00]
+  AUC rate (mL·min)             median  7262.70  mean  7324.13 ± 1125.72  [4319.60 – 12854.20]
+  Stab. time (min)              median     3.30  mean     3.28 ±   0.11  [3.07 – 3.53]
+  Syringe swaps                 median     2.00  mean     1.96 ±   0.44  [1.00 – 4.00]
+  Rate-chg freq (/min)          median    28.85  mean    28.79 ±   0.35  [27.16 – 29.63]
+  Zero-infusion (s)             median   200.00  mean   210.11 ±  45.94  [180.00 – 400.00]
+  Infusion CV                   median     0.63  mean     0.63 ±   0.04  [0.54 – 0.77]
+  Wake-up time (min)            median   107.80  mean   108.15 ±   2.00  [103.80 – 113.30]
+  Ce divergence mean            median     0.14  mean     0.14 ±   0.03  [0.09 – 0.38]
+  Ce divergence max             median     1.60  mean     1.62 ±   0.19  [1.26 – 2.58]
+  Dose divergence (mg)          median   176.56  mean   205.46 ±  91.09  [16.14 – 558.42]
 

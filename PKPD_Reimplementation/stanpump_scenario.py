@@ -6,10 +6,11 @@ Protocol (translated from Czech):
       Ce target = 4 mcg/mL
       Procedure duration = 90 min
       Syringe: 50 mL of 1 % propofol  (500 mg, 10 mg/mL)
-      Syringe changes:
-        1st change: 20 s   (default)
-        2nd change: 180 s  (prolonged, e.g. nurse unavailable)
-        3rd+ change: 20 s  (default again)
+      Syringe changes (cyclic alternation):
+        1st change: 180 s  (prolonged, e.g. nurse unavailable)
+        2nd change:  20 s  (quick)
+        3rd change: 180 s  … and so on
+      Rate step: 0.1 mL/h  (pump resolution)
 
 Patients simulated:
     1  Male   5 yr  18 kg 110 cm
@@ -48,9 +49,10 @@ DURATION_MIN       = 90
 DURATION_S         = DURATION_MIN * 60
 SYRINGE_CAP_MG     = 500.0      # 50 mL × 10 mg/mL
 INFUSATE_MG_ML     = 10.0       # 1 % propofol
-CHANGE_DURATIONS   = [20, 180]  # 1st 20 s, 2nd 180 s, 3rd+ 20 s
+CHANGE_DURATIONS   = [180, 20]  # cyclic: 1st=180 s, 2nd=20 s, 3rd=180 s, …
 DELTA_SECONDS      = 1          # matching SimTIVA JS
 WAKEUP_CE          = 1.5        # mcg/mL — propofol awakening threshold
+RATE_STEP_ML_H     = 0.1        # pump resolution (mL/h)
 
 
 # ---------------------------------------------------------------------------
@@ -128,6 +130,7 @@ def run_all() -> dict:
                     delta_seconds         = DELTA_SECONDS,
                     max_rate_ml_h         = 1800.0,
                     extend_until_ce       = WAKEUP_CE,
+                    rate_step_ml_h        = RATE_STEP_ML_H,
                 )
                 results[model_name][pid] = res
                 n_ch = res['n_changes']

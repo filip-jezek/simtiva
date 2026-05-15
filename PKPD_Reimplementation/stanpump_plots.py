@@ -26,7 +26,7 @@ from scipy import stats as sp_stats
 from stanpump_scenario import (
     run_all, PATIENTS, MODEL_NAMES, MODEL_LABELS,
     CE_TARGET, DURATION_MIN, DURATION_S, WAKEUP_CE,
-    SYRINGE_CAP_MG, INFUSATE_MG_ML,
+    SYRINGE_CAP_MG, INFUSATE_MG_ML, RATE_STEP_ML_H,
 )
 
 # ── permanent colour per model ────────────────────────────────────────────────
@@ -86,7 +86,7 @@ def _unified_scales(pid: int, results: dict, model_list=None) -> tuple:
 
 def plot_summary(results: dict, out_path: str) -> None:
     n_pat   = len(PATIENTS)
-    n_mod   = len(MODEL_NAMES)
+    n_mod   = len(ADULT_MODELS)
     x       = np.arange(n_pat)
     w       = 0.18
     offsets = np.linspace(-(n_mod - 1) / 2, (n_mod - 1) / 2, n_mod) * w
@@ -95,8 +95,9 @@ def plot_summary(results: dict, out_path: str) -> None:
     fig.suptitle(
         'STANPUMP CET — Protocol summary\n'
         f'Ce target = {CE_TARGET} μg/mL  ·  Duration = {DURATION_MIN} min  ·  '
-        f'Syringe = 50 mL × 1% propofol  ·  Max rate = 1800 mL/h\n'
-        'Syringe-change pauses: 1st = 20 s  ·  2nd = 180 s  ·  3rd+ = 20 s',
+        f'Syringe = 50 mL × 1% propofol  ·  Max rate = 1800 mL/h  ·  '
+        f'Rate step = {RATE_STEP_ML_H} mL/h\n'
+        'Syringe-change pauses: 1st = 180 s  ·  2nd = 20 s  ·  alternating (cyclic)',
         fontsize=11, fontweight='bold',
     )
 
@@ -113,7 +114,7 @@ def plot_summary(results: dict, out_path: str) -> None:
         ax.grid(axis='y', color='#cccccc', linewidth=0.6, zorder=0)
         ax.set_axisbelow(True)
 
-        for mi, mn in enumerate(MODEL_NAMES):
+        for mi, mn in enumerate(ADULT_MODELS):
             vals = [getter(results[mn].get(p['id']), p)
                     if results[mn].get(p['id']) else 0.0
                     for p in PATIENTS]
@@ -139,7 +140,7 @@ def plot_summary(results: dict, out_path: str) -> None:
 
     handles = [Patch(facecolor=MODEL_COLORS[mn], label=MODEL_LABELS[mn],
                      edgecolor='white', alpha=0.88)
-               for mn in MODEL_NAMES]
+               for mn in ADULT_MODELS]
     fig.legend(handles=handles, loc='lower center', ncol=4,
                fontsize=9, frameon=True, bbox_to_anchor=(0.5, -0.02))
 
@@ -257,14 +258,23 @@ def plot_patient(pat: dict, results: dict, out_path: str) -> None:
                        marker='D', s=40, color=color,
                        edgecolors='white', lw=0.8, zorder=8)
 
-        # Stats line
+        # Stats block: 2 lines per model
+        stab = res.get('stabilization_time_min')
+        stab_str = f'{stab:.1f} min' if stab is not None else '>90 min'
         stats_lines.append(
             f'{MODEL_LABELS[mn].split()[0]:9s}'
             f'  bolus {res["initial_bolus_mg"]:3d} mg'
             f'  peak {res["peak_time_s"]:3d} s'
-            f'  {res["total_dose_mg"]:5.0f} mg'
-            f' ({res["total_dose_mg"] / pat["weight"]:.1f} mg/kg)'
-            f'  {res["n_changes"]} swaps'
+            f'  dose {res["total_dose_mg"]:5.0f} mg ({res["total_dose_mg"] / pat["weight"]:.1f} mg/kg)'
+            f'  peak-rate {res["peak_rate_mlh"]:6.1f} mL/h'
+            f'  AUC {res["auc_rate_mlh_min"]:6.0f} mL·min'
+        )
+        stats_lines.append(
+            f'{"":9s}'
+            f'  swaps {res["n_changes"]}'
+            f'  zero {res["zero_infusion_dur_s"]:4d} s'
+            f'  CV {res["infusion_cv"]:.2f}'
+            f'  stab {stab_str}'
             f'  wake-up {wu_str}'
         )
 
@@ -321,7 +331,7 @@ def _pop_covariate_panel(ax, patients, results_dict, cov_fn, xlabel) -> None:
     ax.spines['right'].set_visible(False)
 
     stat_lines = []
-    for mn in MODEL_NAMES:
+    for mn in ADULT_MODELS:
         color  = MODEL_COLORS[mn]
         x_vals, y_vals = [], []
         for p in patients:
@@ -382,7 +392,7 @@ def plot_population_covariate(results: dict, patients: list,
         Line2D([0], [0], color=MODEL_COLORS[mn], lw=2.2,
                marker='o', markersize=6, markeredgecolor='#333333',
                markeredgewidth=0.5, label=MODEL_LABELS[mn])
-        for mn in MODEL_NAMES
+        for mn in ADULT_MODELS
     ]
 
     for sex_key, sex_label, sex_val in sex_variants:
@@ -416,6 +426,192 @@ def plot_population_covariate(results: dict, patients: list,
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Figure 4 — Primary + secondary endpoint comparison (adult patients only)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def plot_endpoint_comparison(results: dict, out_path: str) -> None:
+    """2×4 bar chart: 8 endpoints × adult patients, one colour per model."""
+    adult_pats = [p for p in PATIENTS if p['age'] >= 18]
+    n_pat  = len(adult_pats)
+    x      = np.arange(n_pat)
+    w      = 0.22
+    n_mod  = len(ADULT_MODELS)
+    offsets = np.linspace(-(n_mod - 1) / 2, (n_mod - 1) / 2, n_mod) * w
+
+    endpoints = [
+        ('dose_5min_mg',          'Dose @ 5 min (mg)'),
+        ('dose_30min_mg',         'Dose @ 30 min (mg)'),
+        ('dose_60min_mg',         'Dose @ 60 min (mg)'),
+        ('dose_end_mg',           'Total dose (mg)'),
+        ('peak_rate_mlh',         'Peak rate (mL/h)'),
+        ('auc_rate_mlh_min',      'AUC rate (mL·min)'),
+        ('stabilization_time_min','Stab. time (min)'),
+        ('infusion_cv',           'Infusion CV (maintenance)'),
+    ]
+
+    fig, axes = plt.subplots(2, 4, figsize=(18, 8), constrained_layout=True)
+    fig.suptitle(
+        'Primary & secondary endpoint comparison — adult patients (≥ 18 yr)  ·  STANPUMP CET  ·  '
+        f'Ce = {CE_TARGET} μg/mL  ·  {DURATION_MIN} min  ·  rate step 0.1 mL/h  ·  '
+        'cyclic syringe changes [180 s, 20 s, …]',
+        fontsize=10, fontweight='bold',
+    )
+
+    for ax, (col, label) in zip(axes.flat, endpoints):
+        ax.set_title(label, fontsize=9, fontweight='bold', loc='left')
+        for mi, mn in enumerate(ADULT_MODELS):
+            vals = []
+            for p in adult_pats:
+                res = results[mn].get(p['id'])
+                v = res.get(col) if res else None
+                vals.append(float(v) if v is not None else 0.0)
+            bars = ax.bar(x + offsets[mi], vals, w,
+                          label=MODEL_LABELS[mn], color=MODEL_COLORS[mn],
+                          edgecolor='white', linewidth=0.4, alpha=0.88, zorder=3)
+        ax.set_xticks(x)
+        ax.set_xticklabels([p['label'] for p in adult_pats],
+                           rotation=25, ha='right', fontsize=7.5)
+        ax.grid(axis='y', color='#cccccc', linewidth=0.5, zorder=0)
+        ax.set_axisbelow(True)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.tick_params(labelsize=7.5)
+        ax.set_ylim(0, ax.get_ylim()[1] * 1.12)
+
+    handles = [Patch(facecolor=MODEL_COLORS[mn], label=MODEL_LABELS[mn],
+                     edgecolor='white', alpha=0.88)
+               for mn in ADULT_MODELS]
+    fig.legend(handles=handles, loc='lower center', ncol=3,
+               fontsize=9, frameon=True, bbox_to_anchor=(0.5, -0.02))
+
+    plt.savefig(out_path, dpi=160, bbox_inches='tight')
+    plt.close()
+    print(f'Saved: {out_path}')
+
+
+def plot_secondary_endpoints(results: dict, out_path: str) -> None:
+    """1×3 bar chart: secondary endpoint comparison (swaps, zero-infusion, rate-change freq)."""
+    adult_pats = [p for p in PATIENTS if p['age'] >= 18]
+    n_pat  = len(adult_pats)
+    x      = np.arange(n_pat)
+    w      = 0.22
+    n_mod  = len(ADULT_MODELS)
+    offsets = np.linspace(-(n_mod - 1) / 2, (n_mod - 1) / 2, n_mod) * w
+
+    endpoints = [
+        ('n_changes',          'Syringe swaps (#)'),
+        ('zero_infusion_dur_s','Zero-infusion (s)'),
+        ('rate_change_freq',   'Rate-change freq (/min)'),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(14, 5), constrained_layout=True)
+    fig.suptitle(
+        'Secondary endpoints — adult patients (≥ 18 yr)  ·  STANPUMP CET',
+        fontsize=11, fontweight='bold',
+    )
+
+    for ax, (col, label) in zip(axes, endpoints):
+        ax.set_title(label, fontsize=10, fontweight='bold', loc='left')
+        for mi, mn in enumerate(ADULT_MODELS):
+            vals = []
+            for p in adult_pats:
+                res = results[mn].get(p['id'])
+                v = res.get(col) if res else None
+                vals.append(float(v) if v is not None else 0.0)
+            ax.bar(x + offsets[mi], vals, w,
+                   label=MODEL_LABELS[mn], color=MODEL_COLORS[mn],
+                   edgecolor='white', linewidth=0.4, alpha=0.88, zorder=3)
+        ax.set_xticks(x)
+        ax.set_xticklabels([p['label'] for p in adult_pats],
+                           rotation=25, ha='right', fontsize=8)
+        ax.grid(axis='y', color='#cccccc', linewidth=0.5, zorder=0)
+        ax.set_axisbelow(True)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        if col == 'n_changes':
+            ax.yaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+
+    handles = [Patch(facecolor=MODEL_COLORS[mn], label=MODEL_LABELS[mn],
+                     edgecolor='white', alpha=0.88)
+               for mn in ADULT_MODELS]
+    fig.legend(handles=handles, loc='lower center', ncol=3,
+               fontsize=9, frameon=True, bbox_to_anchor=(0.5, -0.02))
+
+    plt.savefig(out_path, dpi=160, bbox_inches='tight')
+    plt.close()
+    print(f'Saved: {out_path}')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Figure 5 — Ce time courses + inter-model divergence (adult patients)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def plot_ce_divergence(results: dict, out_path: str) -> None:
+    """One panel per adult patient: Ce curves for all 3 adult models + gray divergence band."""
+    adult_pats = [p for p in PATIENTS if p['age'] >= 18]
+    n = len(adult_pats)
+
+    fig, axes = plt.subplots(1, n, figsize=(3.6 * n, 4.8), constrained_layout=True)
+    fig.suptitle(
+        'Effect-site concentration over time — adult patients  ·  3 adult models  ·  '
+        'gray band = inter-model range',
+        fontsize=10, fontweight='bold',
+    )
+
+    step = 5
+    for ax, pat in zip(axes, adult_pats):
+        pid = pat['id']
+        ax.set_title(pat['label'], fontsize=8, fontweight='bold')
+        ax.axhline(CE_TARGET, color='#444', lw=0.9, ls='--', alpha=0.6, zorder=4)
+        ax.axhline(WAKEUP_CE, color='#aaa', lw=0.7, ls=':', alpha=0.8, zorder=3)
+        ax.axvline(DURATION_MIN, color='#bbb', lw=0.8, ls='--', zorder=3)
+        ax.set_xlabel('Time (min)', fontsize=7)
+        ax.set_ylabel('Ce (μg mL⁻¹)', fontsize=7)
+        ax.tick_params(labelsize=7)
+        ax.grid(True, alpha=0.18)
+        ax.set_xlim(0, DURATION_MIN + 5)
+
+        ces, t_ref = [], None
+        for mn in ADULT_MODELS:
+            res = results[mn].get(pid)
+            if res is None:
+                continue
+            t_full = res['time_min'][:DURATION_S + 1]
+            ce_full = res['ce'][:DURATION_S + 1]
+            ax.plot(t_full[::step], ce_full[::step],
+                    color=MODEL_COLORS[mn], lw=1.8, alpha=0.90, zorder=5,
+                    label=MODEL_LABELS[mn].split()[0])
+            ces.append(ce_full)
+            t_ref = t_full
+
+        if len(ces) >= 2 and t_ref is not None:
+            min_len = min(len(c) for c in ces)
+            ce_arr  = np.array([c[:min_len] for c in ces])
+            t_plot  = t_ref[:min_len:step]
+            ax.fill_between(t_plot,
+                            ce_arr[:, ::step].min(axis=0),
+                            ce_arr[:, ::step].max(axis=0),
+                            color='#888888', alpha=0.18, zorder=2, label='Model range')
+
+        # Syringe changes from Marsh
+        ref = results['Marsh'].get(pid)
+        if ref:
+            for ts, dur in ref['syringe_changes']:
+                ax.axvspan(ts / 60, (ts + dur) / 60,
+                           color='#cccccc', alpha=0.35, zorder=1)
+
+        ymax = CE_TARGET * 1.8
+        ax.set_ylim(0, ymax)
+        ax.text(DURATION_MIN + 0.5, ymax * 0.06,
+                'off', ha='left', va='bottom', fontsize=6, color='#999')
+        ax.legend(fontsize=6.5, loc='upper right', framealpha=0.85)
+
+    plt.savefig(out_path, dpi=160, bbox_inches='tight')
+    plt.close()
+    print(f'Saved: {out_path}')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Entry point
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -434,5 +630,9 @@ if __name__ == '__main__':
                      os.path.join(outdir, f'stanpump_patient_{pat["id"]}.png'))
 
     plot_population_covariate(results, PATIENTS, outdir)
+
+    plot_endpoint_comparison(results, os.path.join(outdir, 'stanpump_endpoints_primary.png'))
+    plot_secondary_endpoints(results, os.path.join(outdir, 'stanpump_endpoints_secondary.png'))
+    plot_ce_divergence(results, os.path.join(outdir, 'stanpump_ce_divergence.png'))
 
     print('\nAll done.')

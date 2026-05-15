@@ -27,7 +27,7 @@ from scipy import stats as sp_stats
 from stanpump_scenario import (
     CE_TARGET, DURATION_MIN, DURATION_S, WAKEUP_CE,
     SYRINGE_CAP_MG, INFUSATE_MG_ML, CHANGE_DURATIONS, DELTA_SECONDS,
-    MODEL_NAMES, MODEL_LABELS, get_pk_params,
+    MODEL_NAMES, MODEL_LABELS, get_pk_params, RATE_STEP_ML_H,
 )
 from stanpump_tci import simulate_stanpump_cet
 
@@ -48,9 +48,13 @@ FIG_DIR   = os.path.join(OUT_DIR, 'figures')
 STATS_CSV = os.path.join(OUT_DIR, 'patient_stats.csv')
 
 STATS_COLS = [
-    'patient_id', 'age', 'weight', 'height', 'bmi', 'sex',
-    'model', 'bolus_mg', 'peak_time_s', 'total_dose_mg',
-    'dose_per_kg', 'n_swaps', 'wakeup_time_min',
+    'patient_id', 'age', 'weight', 'height', 'bmi', 'sex', 'model',
+    'bolus_mg', 'peak_time_s', 'total_dose_mg', 'dose_per_kg',
+    'dose_5min_mg', 'dose_10min_mg', 'dose_30min_mg', 'dose_60min_mg',
+    'peak_rate_mlh', 'auc_rate_mlh_min', 'stabilization_time_min',
+    'rate_change_freq', 'zero_infusion_dur_s', 'infusion_cv',
+    'n_swaps', 'wakeup_time_min',
+    'ce_div_mean', 'ce_div_max', 'dose_div_mg',
 ]
 
 plt.rcParams.update({
@@ -81,7 +85,7 @@ def _build_pat(row) -> dict:
 
 def run_all_models(pat: dict) -> dict:
     results = {}
-    for mn in MODEL_NAMES:
+    for mn in ADULT_MODELS:
         try:
             pk = get_pk_params(mn, pat)
             results[mn] = simulate_stanpump_cet(
@@ -94,6 +98,7 @@ def run_all_models(pat: dict) -> dict:
                 delta_seconds            = DELTA_SECONDS,
                 max_rate_ml_h            = 1800.0,
                 extend_until_ce          = WAKEUP_CE,
+                rate_step_ml_h           = RATE_STEP_ML_H,
             )
         except Exception:
             results[mn] = None
@@ -104,11 +109,29 @@ def run_all_models(pat: dict) -> dict:
 # Stats extraction
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _compute_divergence(results: dict) -> tuple:
+    """Inter-model Ce and dose divergence across the 3 adult models."""
+    ces, doses = [], []
+    for mn in ADULT_MODELS:
+        r = results.get(mn)
+        if r is None:
+            continue
+        ces.append(r['ce'][:DURATION_S + 1])
+        doses.append(r['total_dose_mg'])
+    if len(ces) < 2:
+        return float('nan'), float('nan'), float('nan')
+    min_len = min(len(c) for c in ces)
+    stack = np.array([c[:min_len] for c in ces])
+    div = stack.max(axis=0) - stack.min(axis=0)
+    return float(div.mean()), float(div.max()), float(max(doses) - min(doses))
+
+
 def extract_stats(pat: dict, results: dict) -> list:
     bmi = pat['weight'] / (pat['height'] / 100) ** 2
     sex = 'M' if pat['gender'] == 0 else 'F'
+    ce_div_mean, ce_div_max, dose_div_mg = _compute_divergence(results)
     rows = []
-    for mn in MODEL_NAMES:
+    for mn in ADULT_MODELS:
         res = results[mn]
         rows.append({
             'patient_id':      pat['id'],
@@ -118,14 +141,29 @@ def extract_stats(pat: dict, results: dict) -> list:
             'bmi':             round(bmi, 2),
             'sex':             sex,
             'model':           mn,
-            'bolus_mg':        res['initial_bolus_mg'] if res else None,
-            'peak_time_s':     res['peak_time_s']      if res else None,
-            'total_dose_mg':   round(res['total_dose_mg'], 1) if res else None,
+            'bolus_mg':        res['initial_bolus_mg']               if res else None,
+            'peak_time_s':     res['peak_time_s']                    if res else None,
+            'total_dose_mg':   round(res['total_dose_mg'], 1)        if res else None,
             'dose_per_kg':     round(res['total_dose_mg'] / pat['weight'], 2) if res else None,
-            'n_swaps':         res['n_changes']         if res else None,
+            'dose_5min_mg':    round(res['dose_5min_mg'],  1)        if res else None,
+            'dose_10min_mg':   round(res['dose_10min_mg'], 1)        if res else None,
+            'dose_30min_mg':   round(res['dose_30min_mg'], 1)        if res else None,
+            'dose_60min_mg':   round(res['dose_60min_mg'], 1)        if res else None,
+            'peak_rate_mlh':   round(res['peak_rate_mlh'],  1)       if res else None,
+            'auc_rate_mlh_min': round(res['auc_rate_mlh_min'], 1)    if res else None,
+            'stabilization_time_min': (round(res['stabilization_time_min'], 2)
+                                       if res and res['stabilization_time_min'] is not None
+                                       else None),
+            'rate_change_freq': round(res['rate_change_freq'], 3)    if res else None,
+            'zero_infusion_dur_s': res['zero_infusion_dur_s']        if res else None,
+            'infusion_cv':     round(res['infusion_cv'], 4)          if res else None,
+            'n_swaps':         res['n_changes']                       if res else None,
             'wakeup_time_min': (round(res['wakeup_time_min'], 1)
                                 if res and res['wakeup_time_min'] is not None
                                 else None),
+            'ce_div_mean':     round(ce_div_mean, 4) if not np.isnan(ce_div_mean) else None,
+            'ce_div_max':      round(ce_div_max,  4) if not np.isnan(ce_div_max)  else None,
+            'dose_div_mg':     round(dose_div_mg, 2) if not np.isnan(dose_div_mg) else None,
         })
     return rows
 
@@ -226,13 +264,22 @@ def plot_patient_fast(pat: dict, results: dict, out_path: str) -> None:
             ax.scatter(t_m[wi], res['ce'][wi], marker='D', s=28,
                        color=color, edgecolors='white', lw=0.6, zorder=8)
 
+        stab = res.get('stabilization_time_min')
+        stab_str = f'{stab:.1f} min' if stab is not None else '>90 min'
         stats_lines.append(
             f'{MODEL_LABELS[mn].split()[0]:9s}'
             f'  bolus {res["initial_bolus_mg"]:3d} mg'
             f'  peak {res["peak_time_s"]:3d} s'
-            f'  {res["total_dose_mg"]:5.0f} mg'
-            f' ({res["total_dose_mg"] / pat["weight"]:.1f} mg/kg)'
-            f'  {res["n_changes"]} swaps'
+            f'  dose {res["total_dose_mg"]:5.0f} mg ({res["total_dose_mg"] / pat["weight"]:.1f} mg/kg)'
+            f'  peak-rate {res["peak_rate_mlh"]:6.1f} mL/h'
+            f'  AUC {res["auc_rate_mlh_min"]:6.0f} mL·min'
+        )
+        stats_lines.append(
+            f'{"":9s}'
+            f'  swaps {res["n_changes"]}'
+            f'  zero {res["zero_infusion_dur_s"]:4d} s'
+            f'  CV {res["infusion_cv"]:.2f}'
+            f'  stab {stab_str}'
             f'  wakeup {wu_str}'
         )
 
@@ -295,7 +342,7 @@ def plot_population_covariate(df_stats: pd.DataFrame,
                marker='o', markersize=5,
                markeredgecolor='#333333', markeredgewidth=0.4,
                label=MODEL_LABELS[mn])
-        for mn in MODEL_NAMES
+        for mn in ADULT_MODELS
     ]
 
     n_pats = df_stats['patient_id'].nunique()
@@ -303,7 +350,7 @@ def plot_population_covariate(df_stats: pd.DataFrame,
     fig.suptitle(
         f'Population dosing covariate analysis  ·  STANPUMP CET  ·  '
         f'Ce = {CE_TARGET} μg/mL  ·  {DURATION_MIN} min  ·  '
-        f'{title_sex}  (n = {n_pats} patients)\n'
+        f'{title_sex}  (n = {n_pats} patients, age > 18 yr)\n'
         'Dots = individual patients  ·  Line = linear regression  ·  '
         'Band = 95% CI  ·  Inset = model n / mean±SD / r / p',
         fontsize=10, fontweight='bold',
@@ -319,7 +366,7 @@ def plot_population_covariate(df_stats: pd.DataFrame,
         ax.spines['right'].set_visible(False)
 
         stat_lines = []
-        for mn in MODEL_NAMES:
+        for mn in ADULT_MODELS:
             color = MODEL_COLORS[mn]
             sub   = df_stats[(df_stats['model'] == mn)].dropna(
                 subset=[col, 'dose_per_kg'])
@@ -373,8 +420,9 @@ if __name__ == '__main__':
     patients_df = (df_full.drop_duplicates('ID')
                    [['ID', 'AGE', 'WGT', 'HGT', 'M1F2']]
                    .reset_index(drop=True))
+    patients_df = patients_df[patients_df['AGE'] > 18].reset_index(drop=True)
     n_pats = len(patients_df)
-    print(f'Loaded {n_pats} patients  '
+    print(f'Loaded {n_pats} adult patients (age > 18)  '
           f'(M={( patients_df["M1F2"]==1).sum()}  '
           f'F={(patients_df["M1F2"]==2).sum()})')
     print(f'Figures → {FIG_DIR}')
@@ -408,27 +456,45 @@ if __name__ == '__main__':
     with open(summary_path, 'w') as f:
         f.write('STANPUMP CET — Population statistics\n')
         f.write(f'Protocol: Ce = {CE_TARGET} μg/mL, {DURATION_MIN} min, '
-                f'≤1800 mL/h, syringe 500 mg\n')
+                f'≤1800 mL/h, rate step {RATE_STEP_ML_H} mL/h, syringe 500 mg\n')
+        f.write(f'Syringe changes: cyclic {CHANGE_DURATIONS} s\n')
+        f.write(f'Age filter: > 18 years  ·  Models: {", ".join(ADULT_MODELS)}\n')
         f.write(f'Patients: n = {df_stats["patient_id"].nunique()}\n\n')
-        for mn in MODEL_NAMES:
+        for mn in ADULT_MODELS:
             sub = df_stats[df_stats['model'] == mn].dropna(subset=['total_dose_mg'])
             if sub.empty:
                 continue
-            f.write(f'{"─"*60}\n{mn}\n{"─"*60}\n')
+            f.write(f'{"─"*72}\n{mn}\n{"─"*72}\n')
             for col, label in [
-                ('bolus_mg',        'Bolus (mg)'),
-                ('total_dose_mg',   'Total dose (mg)'),
-                ('dose_per_kg',     'Dose/kg (mg/kg)'),
-                ('n_swaps',         'Syringe swaps'),
-                ('wakeup_time_min', 'Wake-up time (min)'),
+                # Primary endpoints
+                ('bolus_mg',              'Bolus (mg)'),
+                ('total_dose_mg',         'Total dose (mg)'),
+                ('dose_per_kg',           'Dose/kg (mg/kg)'),
+                ('dose_5min_mg',          'Dose @ 5 min (mg)'),
+                ('dose_10min_mg',         'Dose @ 10 min (mg)'),
+                ('dose_30min_mg',         'Dose @ 30 min (mg)'),
+                ('dose_60min_mg',         'Dose @ 60 min (mg)'),
+                ('peak_rate_mlh',         'Peak rate (mL/h)'),
+                ('auc_rate_mlh_min',      'AUC rate (mL·min)'),
+                ('stabilization_time_min','Stab. time (min)'),
+                # Secondary endpoints
+                ('n_swaps',              'Syringe swaps'),
+                ('rate_change_freq',     'Rate-chg freq (/min)'),
+                ('zero_infusion_dur_s',  'Zero-infusion (s)'),
+                ('infusion_cv',          'Infusion CV'),
+                ('wakeup_time_min',      'Wake-up time (min)'),
+                # Inter-model divergence (patient-level, same per model row)
+                ('ce_div_mean',          'Ce divergence mean'),
+                ('ce_div_max',           'Ce divergence max'),
+                ('dose_div_mg',          'Dose divergence (mg)'),
             ]:
                 v = sub[col].dropna()
                 if v.empty:
                     continue
-                f.write(f'  {label:<24}  '
-                        f'median {v.median():7.1f}  '
-                        f'mean {v.mean():7.1f} ± {v.std():5.1f}  '
-                        f'[{v.min():.1f} – {v.max():.1f}]\n')
+                f.write(f'  {label:<28}  '
+                        f'median {v.median():8.2f}  '
+                        f'mean {v.mean():8.2f} ± {v.std():6.2f}  '
+                        f'[{v.min():.2f} – {v.max():.2f}]\n')
             f.write('\n')
     print(f'Summary  → {summary_path}')
 

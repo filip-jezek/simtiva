@@ -261,6 +261,7 @@ def simulate_stanpump_cet(
     delta_seconds: int = 1,
     max_rate_ml_h: float = 0.0,
     extend_until_ce: float = 0.0,
+    rate_step_ml_h: float = 0.0,
 ) -> dict:
     """
     Simulate propofol TCI using the STANPUMP effect-site targeting algorithm.
@@ -278,8 +279,8 @@ def simulate_stanpump_cet(
     infusate_conc_mg_ml : float
         Propofol concentration in syringe (mg/mL).  Default 10.
     syringe_change_durations : list[int] or None
-        Duration of each successive syringe change in seconds.
-        [20, 180] → 1st change 20 s, 2nd 180 s, 3rd onwards 20 s.
+        Durations of successive syringe changes (seconds), applied cyclically.
+        [180, 20] → 1st=180 s, 2nd=20 s, 3rd=180 s, …
     delta_seconds : int
         Bolus unit length and CPT lookahead (seconds).  SimTIVA uses 1.
     max_rate_ml_h : float
@@ -287,6 +288,9 @@ def simulate_stanpump_cet(
     extend_until_ce : float
         After duration_s, continue with rate = 0 until Ce falls below this
         threshold (mcg/mL).  0 = no extension.  Capped at 7200 extra seconds.
+    rate_step_ml_h : float
+        Quantization step for CPT maintenance rates (ml/h); 0 = continuous.
+        E.g. 0.1 → rates floored to nearest 0.1 ml/h; below 0.1 rounds to 0.
 
     Returns
     -------
@@ -295,15 +299,16 @@ def simulate_stanpump_cet(
         cp, ce, dose_mg,
         total_dose_mg, syringe_changes, n_changes,
         ce_target, initial_bolus_mg, peak_time_s, tci,
-        wakeup_time_s, wakeup_time_min   (None if threshold not reached)
+        wakeup_time_s, wakeup_time_min,
+        dose_5min_mg, dose_10min_mg, dose_30min_mg, dose_60min_mg, dose_end_mg,
+        peak_rate_mlh, auc_rate_mlh_min, stabilization_time_min,
+        rate_change_freq, zero_infusion_dur_s, infusion_cv
     """
     if syringe_change_durations is None:
         syringe_change_durations = [20, 180]
 
     def change_dur(n: int) -> int:
-        if n < len(syringe_change_durations):
-            return syringe_change_durations[n]
-        return 20
+        return syringe_change_durations[n % len(syringe_change_durations)]
 
     # ------------------------------------------------------------------
     # Precompute coefficients
@@ -319,6 +324,8 @@ def simulate_stanpump_cet(
 
     max_rate_mgs = (max_rate_ml_h * infusate_conc_mg_ml / 3600.0
                     if max_rate_ml_h > 0 else 0.0)
+    rate_step_mgs = (rate_step_ml_h * infusate_conc_mg_ml / 3600.0
+                     if rate_step_ml_h > 0 else 0.0)
 
     # ------------------------------------------------------------------
     # CET induction: compute initial bolus from zero state
@@ -439,6 +446,8 @@ def simulate_stanpump_cet(
                     cpt_rate = 0.0
                 if max_rate_mgs > 0:
                     cpt_rate = min(cpt_rate, max_rate_mgs)
+                if rate_step_mgs > 0 and cpt_rate > 0:
+                    cpt_rate = math.floor(cpt_rate / rate_step_mgs) * rate_step_mgs
             r = cpt_rate
 
         # --- Syringe constraint ---
@@ -500,6 +509,42 @@ def simulate_stanpump_cet(
         ce_arr   = np.concatenate([ce_arr,   np.array(ext_ce)])
         dose_arr = np.concatenate([dose_arr, np.array(ext_dose)])
 
+    # ------------------------------------------------------------------
+    # Endpoint metrics
+    # ------------------------------------------------------------------
+    def _dose_at(t: int) -> float:
+        return float(dose_arr[min(t, len(dose_arr) - 1)])
+
+    dose_5min_mg  = _dose_at(300)
+    dose_10min_mg = _dose_at(600)
+    dose_30min_mg = _dose_at(1800)
+    dose_60min_mg = _dose_at(3600)
+    dose_end_mg   = _dose_at(duration_s)
+
+    rate_mlh_proc  = rate_arr[:duration_s + 1] * 3600.0 / infusate_conc_mg_ml
+    time_min_proc  = time_arr[:duration_s + 1] / 60.0
+    peak_rate_mlh_val = float(np.max(rate_mlh_proc))
+    auc_rate_mlh_min  = float(np.trapezoid(rate_mlh_proc, time_min_proc))
+
+    # Stabilization: first 5-min window after maintenance starts with CV < 0.15
+    maint_rate_mlh = rate_arr[cpt_start_s:duration_s + 1] * 3600.0 / infusate_conc_mg_ml
+    stab_min = None
+    for _i in range(max(0, len(maint_rate_mlh) - 300)):
+        chunk = maint_rate_mlh[_i:_i + 300]
+        _m = np.mean(chunk)
+        if _m > 0 and np.std(chunk) / _m < 0.15:
+            stab_min = (cpt_start_s + _i) / 60.0
+            break
+
+    # Secondary: rate-change frequency, zero-infusion duration, CV
+    maint_seq = rate_arr[cpt_start_s:duration_s] * 3600.0 / infusate_conc_mg_ml
+    _n_maint_changes = int(np.sum(np.diff(maint_seq) != 0))
+    maint_dur_min = (duration_s - cpt_start_s) / 60.0
+    rate_chg_freq = _n_maint_changes / maint_dur_min if maint_dur_min > 0 else 0.0
+    zero_dur_s    = int(np.sum(maint_seq == 0))
+    _nz = maint_seq[maint_seq > 0]
+    infusion_cv   = float(np.std(_nz) / np.mean(_nz)) if len(_nz) > 0 else 0.0
+
     return {
         'time_s':         time_arr,
         'time_min':       time_arr / 60.0,
@@ -518,4 +563,17 @@ def simulate_stanpump_cet(
         'wakeup_time_s':       wakeup_time_s,
         'wakeup_time_min':     wakeup_time_s / 60.0 if wakeup_time_s is not None else None,
         'wakeup_ce_threshold': extend_until_ce,
+        # Primary endpoints
+        'dose_5min_mg':           dose_5min_mg,
+        'dose_10min_mg':          dose_10min_mg,
+        'dose_30min_mg':          dose_30min_mg,
+        'dose_60min_mg':          dose_60min_mg,
+        'dose_end_mg':            dose_end_mg,
+        'peak_rate_mlh':          peak_rate_mlh_val,
+        'auc_rate_mlh_min':       auc_rate_mlh_min,
+        'stabilization_time_min': stab_min,
+        # Secondary endpoints
+        'rate_change_freq':    rate_chg_freq,
+        'zero_infusion_dur_s': zero_dur_s,
+        'infusion_cv':         infusion_cv,
     }
